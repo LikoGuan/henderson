@@ -2,6 +2,7 @@ package com.henderson.controller;
 
 //import com.roskill.common.model.Employee;
 //import com.roskill.common.service.DemoDubboService;
+import com.alibaba.dubbo.config.annotation.Reference;
 import com.guan.common.DemoDubboService;
 import com.guan.common.Employee;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +16,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 public class MainController {
-//    @Autowired
-//    private DemoDubboService demoDubboService;
     @Autowired
     private DemoDubboService demoDubboService;
 
     @RequestMapping(value = "/hello", method = RequestMethod.GET)
     @ResponseBody
     public String hello() {
-//        Employee employee = demoDubboService.getEmployeeById(1L);
         Employee employee = demoDubboService.getEmployeeById(1L);
         return "hello";
     }
