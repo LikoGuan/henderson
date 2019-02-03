@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!-- 配置整合mybatis过程 -->
+    <!-- 1.配置数据库相关参数properties的属性：${url} -->
+    <context:property-placeholder location="classpath:jdbc.properties" />
+
+    <!-- 2.数据库连接池 -->
+    <!--<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">-->
+        <!--&lt;!&ndash; 配置连接池属性 &ndash;&gt;-->
+        <!--<property name="driverClass" value="${jdbc.driver}" />-->
+        <!--<property name="jdbcUrl" value="${jdbc.url}" />-->
+        <!--<property name="user" value="${jdbc.username}" />-->
+        <!--<property name="password" value="${jdbc.password}" />-->
+
+        <!--&lt;!&ndash; c3p0连接池的私有属性 &ndash;&gt;-->
+        <!--<property name="maxPoolSize" value="30" />-->
+        <!--<property name="minPoolSize" value="10" />-->
+        <!--&lt;!&ndash; 关闭连接后不自动commit &ndash;&gt;-->
+        <!--<property name="autoCommitOnClose" value="false" />-->
+        <!--&lt;!&ndash; 获取连接超时时间 &ndash;&gt;-->
+        <!--<property name="checkoutTimeout" value="10000" />-->
+        <!--&lt;!&ndash; 当获取连接失败重试次数 &ndash;&gt;-->
+        <!--<property name="acquireRetryAttempts" value="2" />-->
+    <!--</bean>-->
+
+    <!-- 2.数据库连接池 -->
+    <bean id="masterDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <!-- 配置连接池属性 -->
+        <property name="driverClass" value="${jdbc.master.driver}" />
+        <property name="jdbcUrl" value="${jdbc.master.url}" />
+        <property name="user" value="${jdbc.master.username}" />
+        <property name="password" value="${jdbc.master.password}" />
+
+        <!-- c3p0连接池的私有属性 -->
+        <property name="maxPoolSize" value="30" />
+        <property name="minPoolSize" value="10" />
+        <!-- 关闭连接后不自动commit -->
+        <property name="autoCommitOnClose" value="false" />
+        <!-- 获取连接超时时间 -->
+        <property name="checkoutTimeout" value="10000" />
+        <!-- 当获取连接失败重试次数 -->
+        <property name="acquireRetryAttempts" value="2" />
+    </bean>
+
+    <bean id="slaveDataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <!-- 配置连接池属性 -->
+        <property name="driverClass" value="${jdbc.slave.driver}" />
+        <property name="jdbcUrl" value="${jdbc.slave.url}" />
+        <property name="user" value="${jdbc.slave.username}" />
+        <property name="password" value="${jdbc.slave.password}" />
+
+        <!-- c3p0连接池的私有属性 -->
+        <property name="maxPoolSize" value="30" />
+        <property name="minPoolSize" value="10" />
+        <!-- 关闭连接后不自动commit -->
+        <property name="autoCommitOnClose" value="false" />
+        <!-- 获取连接超时时间 -->
+        <property name="checkoutTimeout" value="10000" />
+        <!-- 当获取连接失败重试次数 -->
+        <property name="acquireRetryAttempts" value="2" />
+    </bean>
+
+    <!-- 定义数据源，使用自己实现的数据源 -->
+    <bean id="dataSource" class="com.henderson.service.dynamic.DynamicDataSource">
+        <!-- 设置多个数据源 -->
+        <property name="targetDataSources">
+            <map key-type="java.lang.String">
+                <!-- 这个key需要和程序中的key一致 -->
+                <entry key="master" value-ref="masterDataSource"/>
+                <entry key="slave" value-ref="slaveDataSource"/>
+            </map>
+        </property>
+        <!-- 设置默认的数据源，这里默认走写库 -->
+        <property name="defaultTargetDataSource" ref="masterDataSource"/>
+    </bean>
+
+    <!-- 3.配置SqlSessionFactory对象 -->
+    <!--<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">-->
+        <!--&lt;!&ndash; 注入数据库连接池 &ndash;&gt;-->
+        <!--<property name="dataSource" ref="dataSource" />-->
+        <!--&lt;!&ndash; 配置MyBaties全局配置文件:mybatis-config.xml &ndash;&gt;-->
+        <!--<property name="configLocation" value="classpath:mybatis-config.xml" />-->
+        <!--&lt;!&ndash; 扫描model包 使用别名 &ndash;&gt;-->
+        <!--<property name="typeAliasesPackage" value="com.henderson.service.model" />-->
+        <!--&lt;!&ndash; 扫描sql配置文件:mapper需要的xml文件 &ndash;&gt;-->
+        <!--<property name="mapperLocations" value="classpath:mapper/*.xml" />-->
+    <!--</bean>-->
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 注入数据库连接池 -->
+        <property name="dataSource" ref="dataSource" />
+        <!-- 配置MyBaties全局配置文件:mybatis-config.xml -->
+        <property name="configLocation" value="classpath:mybatis-config.xml" />
+        <!-- 扫描model包 使用别名 -->
+        <property name="typeAliasesPackage" value="com.henderson.service.model" />
+        <!-- 扫描sql配置文件:mapper需要的xml文件 -->
+        <property name="mapperLocations" value="classpath:mapper/*.xml" />
+    </bean>
+
+    <!-- 4.配置扫描Dao接口包，动态实现Dao接口，注入到spring容器中 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 注入sqlSessionFactory -->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+        <!-- 给出需要扫描Dao接口包 -->
+        <property name="basePackage" value="com.henderson.service.dao" />
+    </bean>
+
+    <!-- 定义事务管理器 -->
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- 定义事务策略 -->
+    <tx:advice id="txAdvice" transaction-manager="transactionManager">
+        <tx:attributes>
+            <!--定义查询方法都是只读的 -->
+            <tx:method name="query*" read-only="true" />
+            <tx:method name="find*" read-only="true" />
+            <tx:method name="get*" read-only="true" />
+
+            <!-- 主库执行操作，事务传播行为定义为默认行为 -->
+            <tx:method name="save*" propagation="REQUIRED" />
+            <tx:method name="update*" propagation="REQUIRED" />
+            <tx:method name="delete*" propagation="REQUIRED" />
+
+            <!--其他方法使用默认事务策略 -->
+            <tx:method name="*" />
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 定义AOP切面处理器 -->
+    <bean class="com.henderson.service.dynamic.DataSourceAspect" id="dataSourceAspect">
+        <!-- 指定事务策略 -->
+        <property name="txAdvice" ref="txAdvice" />
+        <!-- 指定slave方法的前缀（非必须） -->
+        <property name="slaveMethodStart" value="query,find,get"/>
+
+    </bean>
+
+    <aop:config>
+        <aop:pointcut id="myPointcut"
+                      expression="execution(* com.henderson.service.dao.*.*(..))" />
+        <!--将定义好的事务处理策略应用到上述的切入点 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="myPointcut" />
+
+        <!-- 将切面应用到自定义的切面处理器上，-9999保证该切面优先级最高执行 -->
+        <aop:aspect ref="dataSourceAspect" order="-9999">
+            <aop:before method="before" pointcut-ref="myPointcut" />
+        </aop:aspect>
+    </aop:config>
+</beans>

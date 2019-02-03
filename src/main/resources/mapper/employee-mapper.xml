@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.henderson.service.dao.EmployeeDao">
+    <!-- 目的：为dao接口方法提供sql语句配置 -->
+    <select id="getById" resultType="com.henderson.service.model.Employee" parameterType="java.lang.Long">
+        SELECT id, name FROM employee WHERE id=#{id};
+    </select>
+
+    <insert id="insert" parameterType="com.henderson.service.model.Employee">
+        INSERT INTO employee(name) VALUES(#{name});
+    </insert>
+</mapper>
